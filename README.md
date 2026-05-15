@@ -1,3 +1,0 @@
-OPENAI_API_KEY=your-openai-api-key-here
-JWT_SECRET=your-jwt-secret-here
-PORT=3000

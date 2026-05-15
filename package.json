@@ -21,10 +21,10 @@
   },
   "homepage": "https://github.com/baks7101/ai-vibecode-lab#readme",
   "dependencies": {
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.5.2",
-    "jsonwebtoken": "^9.0.3",
-    "openai": "^6.37.0"
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "express-rate-limit": "8.5.2",
+    "jsonwebtoken": "9.0.3",
+    "openai": "6.37.0"
   }
 }

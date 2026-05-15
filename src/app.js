@@ -1,26 +1,28 @@
-require('dotenv').config();
-
 const express = require('express');
-const chatRouter = require('./routes/chat');
-const { router: adminRouter } = require('./routes/admin');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(express.json());
 
-app.use('/api/chat', chatRouter);
-app.use('/api/admin', adminRouter);
+const chatRoutes = require('./routes/chat');
+const adminRoutes = require('./routes/admin');
 
-app.get('/health', (_req, res) => {
-  res.json({ ok: true });
+app.use('/api/chat', chatRoutes.router);
+app.use('/api/admin', adminRoutes);
+
+// Error handler
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    error: err.message,
+    stack: err.stack
+  });
 });
 
-app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Listening on http://localhost:${PORT}`);
+  console.log(`MediTriage API running on port ${PORT}`);
 });
+
+module.exports = app;

@@ -1,18 +1,14 @@
 const express = require('express');
-
-const triageLogs = [];
-
-function appendTriageLog(entry) {
-  triageLogs.push(entry);
-}
+const { triageLogs } = require('./chat');
 
 const router = express.Router();
 
-// TODO: Protect this route with requireAuth once client apps issue JWTs.
+// TODO: add auth later
 router.get('/logs', (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 50, 200);
-  const recent = triageLogs.slice(-limit).reverse();
-  res.json({ logs: recent });
+  res.json({
+    total: triageLogs.length,
+    logs: triageLogs
+  });
 });
 
-module.exports = { router, appendTriageLog, triageLogs };
+module.exports = router;

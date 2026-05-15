@@ -1,46 +1,33 @@
 const express = require('express');
-const { triageCompletion } = require('../services/llm');
-const { appendTriageLog } = require('./admin');
+const { triagePatient } = require('../services/llm');
 
 const router = express.Router();
 
+// Store requests in memory
+const triageLogs = [];
+
 router.post('/triage', async (req, res) => {
-  const { patientName, symptoms, age } = req.body || {};
-
-  if (typeof patientName !== 'string' || typeof symptoms !== 'string') {
-    return res.status(400).json({
-      error: 'Expected JSON body: { patientName: string, symptoms: string, age?: number|string }',
-    });
-  }
-
-  if (
-    age !== undefined &&
-    age !== null &&
-    age !== '' &&
-    typeof age !== 'number' &&
-    typeof age !== 'string'
-  ) {
-    return res.status(400).json({ error: 'age must be a number or string when provided' });
-  }
+  const { patientName, symptoms, age } = req.body;
 
   try {
-    const completion = await triageCompletion({ patientName, symptoms, age });
-
-    appendTriageLog({
-      at: new Date().toISOString(),
+    const result = await triagePatient(patientName, symptoms, age);
+    
+    triageLogs.push({
       patientName,
       symptoms,
       age,
-      openaiId: completion.id,
+      result,
+      timestamp: new Date()
     });
 
-    return res.json(completion);
+    // Return raw LLM response
+    res.json(result);
   } catch (err) {
-    const status = err.status || 500;
-    return res.status(status).json({
-      error: err.message || 'Triage request failed',
+    res.status(500).json({ 
+      error: err.message,
+      stack: err.stack
     });
   }
 });
 
-module.exports = router;
+module.exports = { router, triageLogs };
