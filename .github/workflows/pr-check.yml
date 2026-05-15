@@ -1,0 +1,12 @@
+name: PR Security Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ai-security-scan:
+    name: AI Security Gate
+    uses: baks7101/SecureStack-platform/.github/workflows/ai-security-scan.yml@main
+    secrets: inherit
