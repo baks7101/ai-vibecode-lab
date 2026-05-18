@@ -6,7 +6,13 @@ on:
       - main
 
 jobs:
-  ai-security-scan:
-    name: AI Security Gate
-    uses: baks7101/SecureStack-platform/.github/workflows/ai-security-scan.yml@main
+  full-security:
+    name: Full Security Gate
+    uses: baks7101/SecureStack-platform/.github/workflows/full-security-scan.yml@main
+    with:
+      scan-path: "."
+      has-docker: false
+      has-terraform: false
+      has-kubernetes: false
+      run-dast: false
     secrets: inherit
