@@ -1,17 +1,23 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { triagePatient } = require('../services/llm');
 
 const router = express.Router();
 
-// Store requests in memory
 const triageLogs = [];
 
-router.post('/triage', async (req, res) => {
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, please try again later' }
+});
+
+router.post('/triage', limiter, async (req, res) => {
   const { patientName, symptoms, age } = req.body;
 
   try {
     const result = await triagePatient(patientName, symptoms, age);
-    
+
     triageLogs.push({
       patientName,
       symptoms,
@@ -20,12 +26,10 @@ router.post('/triage', async (req, res) => {
       timestamp: new Date()
     });
 
-    // Return raw LLM response
     res.json(result);
   } catch (err) {
-    res.status(500).json({ 
-      error: err.message,
-      stack: err.stack
+    res.status(500).json({
+      error: 'Triage request failed'
     });
   }
 });

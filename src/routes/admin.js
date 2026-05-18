@@ -1,10 +1,10 @@
 const express = require('express');
 const { triageLogs } = require('./chat');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// TODO: add auth later
-router.get('/logs', (req, res) => {
+router.get('/logs', requireAuth, (req, res) => {
   res.json({
     total: triageLogs.length,
     logs: triageLogs
