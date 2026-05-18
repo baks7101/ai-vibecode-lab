@@ -22,7 +22,7 @@ That is shift-left AI security in practice.
 ```
 ai-vibecode-lab (this repo)          securestack-platform (security team)
 ├── src/                             ├── .github/workflows/
-│   ├── app.js                       │   └── ai-security-scan.yml
+│   ├── app.js                       │   └── full-security-scan.yml
 │   ├── routes/                      │       ├── Stage 1: Gitleaks
 │   │   ├── chat.js                  │       ├── Stage 2: Semgrep AI rules
 │   │   └── admin.js                 │       ├── Stage 3: Dependency pins
