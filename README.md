@@ -199,3 +199,15 @@ curl -X POST http://localhost:3000/api/chat/triage \
   -H 'Content-Type: application/json' \
   -d '{"patientName":"Alex","symptoms":"chest pain and shortness of breath","age":52}'
 ```
+---
+
+## Screenshots
+
+### Arko Hackability Score — vulnerable code (71/100)
+![Arko Score](docs/screenshots/arko-score-71.png)
+
+### Pipeline failing — 3 OWASP LLM findings blocking the PR
+![Pipeline Failing](docs/screenshots/pipeline-failing.png)
+
+### Pipeline passing — all stages green after fixes
+![Pipeline Passing](docs/screenshots/pipeline-passing.png)
