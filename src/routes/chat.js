@@ -1,6 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const { triagePatient } = require('../services/llm');
+const { triagePatient, GuardBlockedError } = require('../services/llm');
 
 const router = express.Router();
 
@@ -28,10 +28,20 @@ router.post('/triage', limiter, async (req, res) => {
 
     res.json(result);
   } catch (err) {
+    if (err instanceof GuardBlockedError) {
+      return res.status(400).json({
+        error: 'Request blocked by content safety scan',
+        stage: err.stage,
+        scanners: err.scanners
+      });
+    }
+
     res.status(500).json({
       error: 'Triage request failed'
     });
   }
 });
+
+
 
 module.exports = { router, triageLogs };

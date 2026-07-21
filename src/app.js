@@ -6,11 +6,18 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
+const { register } = require('./metrics');
+
 const chatRoutes = require('./routes/chat');
 const adminRoutes = require('./routes/admin');
 
 app.use('/api/chat', chatRoutes.router);
 app.use('/api/admin', adminRoutes);
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 // Error handler
 app.use((err, req, res, next) => {

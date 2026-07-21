@@ -1,0 +1,33 @@
+app:
+  name: ${APP_NAME:LLM Guard API}
+  log_level: ${LOG_LEVEL:INFO}
+  log_json: ${LOG_JSON:true}
+  scan_fail_fast: ${SCAN_FAIL_FAST:true}
+  scan_prompt_timeout: ${SCAN_PROMPT_TIMEOUT:30}
+  scan_output_timeout: ${SCAN_OUTPUT_TIMEOUT:30}
+  lazy_load: ${LAZY_LOAD:true}
+
+rate_limit:
+  enabled: ${RATE_LIMIT_ENABLED:false}
+  limit: ${RATE_LIMIT_LIMIT:100/minute}
+
+auth:
+  type: http_bearer
+  token: ${AUTH_TOKEN:}
+
+tracing:
+  exporter: ${TRACING_EXPORTER:console}
+  endpoint: ${TRACING_OTEL_ENDPOINT:}
+
+metrics:
+  exporter: ${METRICS_TYPE:prometheus}
+  endpoint: ${METRICS_ENDPOINT:}
+
+input_scanners:
+  - type: PromptInjection
+    params:
+      threshold: 0.9
+  - type: InvisibleText
+
+output_scanners:
+  - type: Sensitive

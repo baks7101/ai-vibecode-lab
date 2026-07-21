@@ -1,0 +1,35 @@
+{
+  "aiBomVersion": "1.0",
+  "component": {
+    "name": "ai-vibecode-lab",
+    "repository": "https://github.com/baks7101/ai-vibecode-lab",
+    "description": "Patient triage API demonstrating OWASP LLM Top 10 vulnerabilities"
+  },
+  "models": [
+    {
+      "name": "gpt-3.5-turbo",
+      "provider": "openai",
+      "hosting": "third-party-api",
+      "purpose": "Patient triage classification",
+      "dataClassification": "PHI"
+    }
+  ],
+  "frameworks": [
+    {
+      "name": "openai",
+      "version": "6.37.0",
+      "purpose": "OpenAI API client"
+    }
+  ],
+  "mcpServers": [],
+  "agentTools": [],
+  "runtimeControls": [
+    {
+      "name": "llm-guard",
+      "image": "laiyer/llm-guard-api:latest",
+      "type": "runtime-scanner",
+      "inputScanners": ["PromptInjection", "InvisibleText"],
+      "outputScanners": ["Sensitive"]
+    }
+  ]
+}
