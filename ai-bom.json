@@ -19,17 +19,33 @@
       "name": "openai",
       "version": "6.37.0",
       "purpose": "OpenAI API client"
+    },
+    {
+      "name": "langchain",
+      "version": "0.3.0",
+      "purpose": "Agent orchestration"
     }
   ],
-  "mcpServers": [],
+  "mcpServers": [
+    {
+      "name": "community-health-records-mcp",
+      "purpose": "Fetch patient history from external records system",
+      "transport": "sse"
+    }
+  ],
   "agentTools": [],
   "runtimeControls": [
     {
       "name": "llm-guard",
       "image": "laiyer/llm-guard-api:latest",
       "type": "runtime-scanner",
-      "inputScanners": ["PromptInjection", "InvisibleText"],
-      "outputScanners": ["Sensitive"]
+      "inputScanners": [
+        "PromptInjection",
+        "InvisibleText"
+      ],
+      "outputScanners": [
+        "Sensitive"
+      ]
     }
   ]
 }
