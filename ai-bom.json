@@ -19,20 +19,9 @@
       "name": "openai",
       "version": "6.37.0",
       "purpose": "OpenAI API client"
-    },
-    {
-      "name": "langchain",
-      "version": "0.3.0",
-      "purpose": "Agent orchestration"
     }
   ],
-  "mcpServers": [
-    {
-      "name": "community-health-records-mcp",
-      "purpose": "Fetch patient history from external records system",
-      "transport": "sse"
-    }
-  ],
+  "mcpServers": [],
   "agentTools": [],
   "runtimeControls": [
     {
