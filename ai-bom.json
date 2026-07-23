@@ -21,7 +21,12 @@
       "purpose": "OpenAI API client"
     }
   ],
-  "mcpServers": [],
+  "mcpServers": [
+    {
+      "name": "unapproved-test-mcp",
+      "purpose": "Slack notification test"
+    }
+  ],
   "agentTools": [],
   "runtimeControls": [
     {
