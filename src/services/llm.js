@@ -6,10 +6,13 @@ const {
   llmGuardScanDuration
 } = require('../metrics');
 
-// TODO: move this to env later
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || 'sk-default-key-123'
-});
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+if (!OPENAI_API_KEY) {
+  console.error('FATAL: OPENAI_API_KEY environment variable is not set');
+  process.exit(1);
+}
+
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 const GUARD_URL = process.env.LLM_GUARD_URL || 'http://localhost:8000';
 const GUARD_TOKEN = process.env.LLM_GUARD_TOKEN;
