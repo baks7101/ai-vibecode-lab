@@ -29,7 +29,7 @@ spec:
       containers:
         # ---- Container 1: the application ----
         - name: api
-          image: IMAGE_PLACEHOLDER_API
+          image: 761584754677.dkr.ecr.eu-west-2.amazonaws.com/securestack-api:v1
           ports:
             - containerPort: 3000
               name: http
