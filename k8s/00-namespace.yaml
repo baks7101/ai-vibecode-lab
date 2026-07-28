@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: meditriage
+  labels:
+    app: meditriage
+    # Enforce the baseline pod security standard on this namespace.
+    # This is Kubernetes' built-in guardrail: it rejects pods that
+    # ask for dangerous privileges (running as root, host access, etc).
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

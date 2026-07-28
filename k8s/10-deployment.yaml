@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meditriage-api
+  namespace: meditriage
+  labels:
+    app: meditriage-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meditriage-api
+  template:
+    metadata:
+      labels:
+        app: meditriage-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Pod-level security: no privilege escalation, run as non-root.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        # ---- Container 1: the application ----
+        - name: api
+          image: IMAGE_PLACEHOLDER_API
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: PORT
+              value: "3000"
+            - name: LLM_GUARD_URL
+              value: "http://localhost:8000"
+            - name: LLM_GUARD_FAIL_OPEN
+              value: "false"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: meditriage-secrets
+                  key: openai-api-key
+            - name: LLM_GUARD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: meditriage-secrets
+                  key: llm-guard-token
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+        # ---- Container 2: the LLM-Guard sidecar ----
+        - name: llm-guard
+          image: laiyer/llm-guard-api:latest
+          ports:
+            - containerPort: 8000
+              name: guard
+          env:
+            - name: AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: meditriage-secrets
+                  key: llm-guard-token
+          volumeMounts:
+            - name: guard-config
+              mountPath: /home/user/app/config/scanners.yml
+              subPath: scanners.yml
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "2Gi"
+            limits:
+              cpu: "1000m"
+              memory: "4Gi"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: guard-config
+          configMap:
+            name: llm-guard-config

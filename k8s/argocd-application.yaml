@@ -1,0 +1,27 @@
+# ArgoCD Application: tells ArgoCD to watch the k8s/ folder of this repo
+# and keep the cluster in sync with it. This is the GitOps handoff:
+# you change manifests in git, ArgoCD reconciles the cluster to match.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: meditriage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/baks7101/ai-vibecode-lab.git
+    targetRevision: main
+    path: k8s
+    directory:
+      # Don't let ArgoCD try to apply the example secret or the
+      # Application manifest itself.
+      exclude: "{30-secret.example.yaml,argocd-application.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: meditriage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
