@@ -45,6 +45,11 @@ spec:
                 secretKeyRef:
                   name: meditriage-secrets
                   key: openai-api-key
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: meditriage-secrets
+                  key: jwt-secret
             - name: LLM_GUARD_TOKEN
               valueFrom:
                 secretKeyRef:
