@@ -102,13 +102,25 @@ spec:
             limits:
               cpu: "1000m"
               memory: "4Gi"
+          # Readiness gated on a REAL scan, not /healthz. /healthz returns
+          # 200 before the ML models load, so probing it marks the pod
+          # ready before it can actually scan (the cold-start 500 we hit
+          # live). This exec probe only succeeds once a real prompt scan
+          # returns, so k8s won't route traffic until the guard truly works.
           readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8000
+            exec:
+              command:
+                - sh
+                - -c
+                - >-
+                  curl -sf -X POST http://localhost:8000/analyze/prompt
+                  -H "Authorization: Bearer $AUTH_TOKEN"
+                  -H "Content-Type: application/json"
+                  -d '{"prompt":"readiness probe"}'
             initialDelaySeconds: 30
             periodSeconds: 15
-            failureThreshold: 10
+            failureThreshold: 20
+            timeoutSeconds: 10
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
