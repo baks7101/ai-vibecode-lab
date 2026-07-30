@@ -15,7 +15,7 @@ spec:
     directory:
       # Don't let ArgoCD try to apply the example secret or the
       # Application manifest itself.
-      exclude: "{30-secret.example.yaml,argocd-application.yaml}"
+      exclude: "{30-secret.example.yaml,argocd-application.yaml,40-external-secret.yaml}"
   destination:
     server: https://kubernetes.default.svc
     namespace: meditriage

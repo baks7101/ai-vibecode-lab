@@ -146,3 +146,5 @@ vite.config.ts.timestamp-*
 k8s/*secret.yaml
 !k8s/*secret.example.yaml
 .DS_Store
+terraform.tfstate
+terraform.tfstate.backup
