@@ -110,13 +110,14 @@ spec:
           readinessProbe:
             exec:
               command:
-                - sh
+                - python3
                 - -c
                 - >-
-                  curl -sf -X POST http://localhost:8000/analyze/prompt
-                  -H "Authorization: Bearer $AUTH_TOKEN"
-                  -H "Content-Type: application/json"
-                  -d '{"prompt":"readiness probe"}'
+                  import os,urllib.request,json;
+                  req=urllib.request.Request("http://localhost:8000/analyze/prompt",
+                  data=json.dumps({"prompt":"readiness probe"}).encode(),
+                  headers={"Authorization":"Bearer "+os.environ["AUTH_TOKEN"],"Content-Type":"application/json"});
+                  urllib.request.urlopen(req,timeout=8)
             initialDelaySeconds: 30
             periodSeconds: 15
             failureThreshold: 20
