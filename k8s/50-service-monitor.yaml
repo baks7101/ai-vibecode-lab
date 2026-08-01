@@ -1,0 +1,32 @@
+# A Service in front of the app pod (Prometheus scrapes Services, not pods directly)
+apiVersion: v1
+kind: Service
+metadata:
+  name: meditriage-api
+  namespace: meditriage
+  labels:
+    app: meditriage-api
+spec:
+  selector:
+    app: meditriage-api
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+---
+# ServiceMonitor tells kube-prometheus-stack to scrape that Service's /metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: meditriage-api
+  namespace: meditriage
+  labels:
+    release: kube-prom      # kube-prometheus-stack only picks up monitors with this label
+spec:
+  selector:
+    matchLabels:
+      app: meditriage-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
