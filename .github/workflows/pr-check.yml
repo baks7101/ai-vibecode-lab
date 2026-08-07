@@ -11,8 +11,8 @@ jobs:
     uses: baks7101/SecureStack-platform/.github/workflows/full-security-scan.yml@main
     with:
       scan-path: "."
-      has-docker: false
+      has-docker: true
       has-terraform: false
-      has-kubernetes: false
+      has-kubernetes: true
       run-dast: false
     secrets: inherit
