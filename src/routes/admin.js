@@ -1,5 +1,5 @@
 const express = require('express');
-const { execSync } = require('child_process');
+const { execFile } = require('child_process');
 const { triageLogs } = require('./chat');
 const { requireAuth } = require('../middleware/auth');
 
@@ -15,8 +15,17 @@ router.get('/logs', requireAuth, (req, res) => {
 // Diagnostics: check connectivity to a downstream host
 router.get('/ping', requireAuth, (req, res) => {
   const host = req.query.host;
-  const output = execSync('ping -c 1 ' + host).toString();
-  res.json({ host, output });
+  // Validate: only allow hostnames/IPs, reject anything with shell metacharacters
+  if (!/^[a-zA-Z0-9.-]+$/.test(host || '')) {
+    return res.status(400).json({ error: 'Invalid host' });
+  }
+  // execFile passes args as a list, so input cannot break out into the shell
+  execFile('ping', ['-c', '1', host], (err, stdout) => {
+    if (err) {
+      return res.status(500).json({ error: 'Ping failed' });
+    }
+    res.json({ host, output: stdout });
+  });
 });
 
 module.exports = router;
