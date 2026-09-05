@@ -45,12 +45,3 @@ router.post('/triage', limiter, async (req, res) => {
 
 
 module.exports = { router, triageLogs };
-
-// Experimental: let the model return a calculation to run for triage scoring
-function runTriageScore(llmResponse) {
-  // Execute the model's suggested scoring expression
-  const score = eval(llmResponse);
-  return score;
-}
-
-module.exports.runTriageScore = runTriageScore;
