@@ -12,13 +12,6 @@
       "hosting": "third-party-api",
       "purpose": "Patient triage classification",
       "dataClassification": "PHI"
-    },
-    {
-      "name": "gpt-4o-mini",
-      "provider": "openai",
-      "hosting": "third-party-api",
-      "purpose": "Faster triage pre-screening",
-      "dataClassification": "PHI"
     }
   ],
   "frameworks": [
