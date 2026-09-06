@@ -12,6 +12,13 @@
       "hosting": "third-party-api",
       "purpose": "Patient triage classification",
       "dataClassification": "PHI"
+    },
+    {
+      "name": "gpt-4o-mini",
+      "provider": "openai",
+      "hosting": "third-party-api",
+      "purpose": "Faster triage pre-screening",
+      "dataClassification": "PHI"
     }
   ],
   "frameworks": [
@@ -28,8 +35,13 @@
       "name": "llm-guard",
       "image": "laiyer/llm-guard-api:latest",
       "type": "runtime-scanner",
-      "inputScanners": ["PromptInjection", "InvisibleText"],
-      "outputScanners": ["Sensitive"]
+      "inputScanners": [
+        "PromptInjection",
+        "InvisibleText"
+      ],
+      "outputScanners": [
+        "Sensitive"
+      ]
     }
   ]
 }
