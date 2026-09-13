@@ -27,6 +27,7 @@ resource "aws_default_security_group" "default" {
 # Public subnets — for load balancers only
 # checkov:skip=CKV_AWS_130:Public subnets require public IPs for ALB/NLB ingress
 resource "aws_subnet" "public" {
+  # checkov:skip=CKV_AWS_130:Public subnets must auto-assign public IPs so the internet-facing load balancer and NAT gateway work; workloads run in the PRIVATE subnets.
   count                   = length(var.public_subnet_cidrs)
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]

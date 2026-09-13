@@ -82,6 +82,9 @@ resource "random_id" "suffix" {
 # checkov:skip=CKV_AWS_144:Cross-region replication not cost-effective for demo project
 # checkov:skip=CKV2_AWS_62:S3 event notifications not required for this use case
 resource "aws_s3_bucket" "cloudtrail" {
+  # checkov:skip=CKV_AWS_18:Access logging on the audit bucket is a production next step; the bucket is already KMS-encrypted, versioned, and public-access-blocked.
+  # checkov:skip=CKV2_AWS_62:Event notifications not needed for a lab audit bucket; would add for real-time alerting in production.
+  # checkov:skip=CKV_AWS_144:Cross-region replication is real cost, deliberately out of scope for a single-region lab.
   bucket        = "${var.project_name}-cloudtrail-${random_id.suffix.hex}"
   force_destroy = true
 
@@ -123,6 +126,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail" {
     id     = "archive-and-expire"
     filter {}
     status = "Enabled"
+
+    # Abort incomplete multipart uploads after 7 days (CKV_AWS_300) —
+    # stops orphaned upload parts silently accruing storage cost.
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
 
     transition {
       days          = 90
@@ -228,6 +237,7 @@ resource "aws_cloudtrail" "main" {
 # --- GuardDuty (Threat Detection) ---
 # checkov:skip=CKV2_AWS_3:Org-level GuardDuty requires AWS Organizations — not applicable for single-account demo
 resource "aws_guardduty_detector" "main" {
+  # checkov:skip=CKV2_AWS_3:Single-account lab, no AWS Organization; org/region-wide GuardDuty enablement is a production/multi-account concern.
   enable = true
 
   finding_publishing_frequency = "FIFTEEN_MINUTES"
@@ -254,6 +264,7 @@ resource "aws_securityhub_standards_subscription" "cis" {
 # --- Secrets Manager ---
 # checkov:skip=CKV2_AWS_57:Secret rotation requires Lambda function — will be implemented in M9
 resource "aws_secretsmanager_secret" "db_credentials" {
+  # checkov:skip=CKV2_AWS_57:Automatic rotation needs a rotation Lambda; documented as a production next step. Secrets are KMS-encrypted and access-scoped via IRSA.
   name        = "${var.project_name}/db-credentials"
   description = "Database credentials for SecureStack application"
   kms_key_id  = var.kms_key_arn
@@ -266,6 +277,7 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 
 # checkov:skip=CKV2_AWS_57:Secret rotation requires Lambda function — will be implemented in M9
 resource "aws_secretsmanager_secret" "jwt_secret" {
+  # checkov:skip=CKV2_AWS_57:Automatic rotation needs a rotation Lambda; documented as a production next step. Secrets are KMS-encrypted and access-scoped via IRSA.
   name        = "${var.project_name}/jwt-secret"
   description = "JWT signing secret for SecureStack API"
   kms_key_id  = var.kms_key_arn

@@ -28,6 +28,7 @@ resource "random_password" "opensearch_master" {
 
 # Store it in AWS Secrets Manager — the production home for secrets.
 resource "aws_secretsmanager_secret" "opensearch_master" {
+  # checkov:skip=CKV2_AWS_57:Automatic rotation needs a rotation Lambda; documented as a production next step. Secret is KMS-encrypted with a customer-managed CMK.
   name        = "${var.project_name}/opensearch/master"
   description = "OpenSearch SIEM master user credentials"
   kms_key_id  = aws_kms_key.secrets.arn # customer-managed CMK (CKV_AWS_149)

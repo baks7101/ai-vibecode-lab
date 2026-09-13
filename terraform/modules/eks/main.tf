@@ -5,6 +5,8 @@
 # checkov:skip=CKV_AWS_39:Public endpoint required for GitHub Actions OIDC deployment and developer kubectl access
 # checkov:skip=CKV_AWS_38:Public endpoint access restricted by RBAC and security group — required for CI/CD
 resource "aws_eks_cluster" "main" {
+  # checkov:skip=CKV_AWS_38:Public endpoint needed to manage the cluster from a workstation in this lab (no bastion/VPN); private access is also enabled.
+  # checkov:skip=CKV_AWS_39:Same — public endpoint is a deliberate lab access choice; production would be private-only with a bastion or VPN.
   name     = "${var.project_name}-eks"
   role_arn = aws_iam_role.cluster.arn
   version  = var.cluster_version

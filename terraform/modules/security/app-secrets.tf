@@ -53,6 +53,7 @@ resource "random_password" "jwt_secret" {
 
 # One Secrets Manager entry holding all three app secrets as JSON.
 resource "aws_secretsmanager_secret" "app" {
+  # checkov:skip=CKV2_AWS_57:Automatic rotation needs a rotation Lambda; documented as a production next step. Secret is KMS-encrypted with a customer-managed CMK.
   name        = "${var.project_name}/app/secrets"
   description = "MediTriage app secrets: openai key, guard token, jwt secret"
   kms_key_id  = aws_kms_key.secrets.arn # customer-managed CMK (CKV_AWS_149)
