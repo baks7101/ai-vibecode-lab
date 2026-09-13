@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  security-events: write
+  id-token: write # allow the reusable workflow to mint an OIDC token for AWS
+
 jobs:
   full-security:
     name: Full Security Gate
@@ -12,7 +17,9 @@ jobs:
     with:
       scan-path: "."
       has-docker: true
-      has-terraform: false
+      has-terraform: true
       has-kubernetes: true
       run-dast: false
+      has-ai: true
+      aws-role-arn: arn:aws:iam::761584754677:role/github-actions-ai-vibecode-lab
     secrets: inherit

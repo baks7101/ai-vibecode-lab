@@ -148,3 +148,12 @@ k8s/*secret.yaml
 .DS_Store
 terraform.tfstate
 terraform.tfstate.backup
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/tfplan
+terraform/plan.json
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+**/backend_override.tf
