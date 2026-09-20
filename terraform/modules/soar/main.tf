@@ -88,6 +88,7 @@ resource "aws_lambda_function" "soar" {
   # checkov:skip=CKV_AWS_116:No DLQ — SOAR failures surface via CloudWatch logs + are re-triggerable by GuardDuty; DLQ is over-engineering here.
   # checkov:skip=CKV_AWS_272:Code-signing requires a Signer profile; disproportionate for a single internal response function.
   # checkov:skip=CKV_AWS_173:Env vars hold only an SNS ARN and SG ID (non-secret identifiers), not sensitive data.
+  # checkov:skip=CKV_AWS_115:Reserved concurrency removed — this account's unreserved pool is small, and reserving would drop it below AWS's minimum of 10. Would set it in production with a raised account limit.
   function_name                  = "${var.name_prefix}-soar-auto-response"
   role                           = aws_iam_role.soar.arn
   runtime                        = "python3.12"
@@ -95,7 +96,6 @@ resource "aws_lambda_function" "soar" {
   filename                       = data.archive_file.soar.output_path
   source_code_hash               = data.archive_file.soar.output_base64sha256
   timeout                        = 30
-  reserved_concurrent_executions = 5 # cap parallel invocations (CKV_AWS_115)
 
   tracing_config {
     mode = "Active" # X-Ray tracing for observability (CKV_AWS_50)
