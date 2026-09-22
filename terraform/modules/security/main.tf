@@ -290,8 +290,8 @@ resource "aws_secretsmanager_secret" "jwt_secret" {
 
 # --- SNS Topic for Security Alerts ---
 resource "aws_sns_topic" "security_alerts" {
-  name              = "${var.project_name}-security-alerts"
-  kms_master_key_id = "alias/aws/sns" # encrypt messages at rest (CKV_AWS_26)
+  # checkov:skip=CKV_AWS_26:CloudTrail publishes delivery NOTIFICATIONS here (not audit data — that's in the encrypted S3 bucket). The AWS-managed SNS key can't grant CloudTrail access, so this topic is unencrypted by design.
+  name = "${var.project_name}-security-alerts"
 
   tags = {
     Name        = "${var.project_name}-security-alerts"

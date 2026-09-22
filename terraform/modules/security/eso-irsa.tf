@@ -48,6 +48,12 @@ resource "aws_iam_role_policy" "eso_read_secrets" {
         aws_secretsmanager_secret.app.arn,
         aws_secretsmanager_secret.opensearch_master.arn
       ]
+      }, {
+      # The app secret is encrypted with the customer-managed CMK, so ESO
+      # needs kms:Decrypt on that key to read it (not just GetSecretValue).
+      Effect   = "Allow"
+      Action   = ["kms:Decrypt"]
+      Resource = [aws_kms_key.secrets.arn]
     }]
   })
 }

@@ -29,7 +29,7 @@ spec:
       containers:
         # ---- Container 1: the application ----
         - name: api
-          image: 761584754677.dkr.ecr.eu-west-2.amazonaws.com/securestack-api:v1
+          image: 761584754677.dkr.ecr.eu-west-2.amazonaws.com/securestack-api:v2
           ports:
             - containerPort: 3000
               name: http
