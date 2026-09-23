@@ -21,7 +21,7 @@ metadata:
   name: meditriage-api
   namespace: meditriage
   labels:
-    release: kube-prom      # kube-prometheus-stack only picks up monitors with this label
+    release: monitoring      # must match the Helm release name of kube-prometheus-stack
 spec:
   selector:
     matchLabels:

@@ -76,6 +76,19 @@ module "security" {
   oidc_provider_url = module.eks.oidc_provider_url
 }
 
+# --- SIEM Centralisation (CloudTrail + GuardDuty -> OpenSearch) ---
+module "siem" {
+  source = "./modules/siem"
+
+  name_prefix           = var.project_name
+  cloudtrail_bucket_id  = module.security.cloudtrail_bucket
+  cloudtrail_bucket_arn = module.security.cloudtrail_bucket_arn
+  opensearch_endpoint   = module.security.opensearch_endpoint
+  opensearch_secret_id  = module.security.opensearch_secret_id
+  opensearch_secret_arn = module.security.opensearch_secret_arn
+  secrets_kms_key_arn   = module.security.secrets_kms_key_arn
+}
+
 # --- SOAR Module (automated incident response) ---
 module "soar" {
   source = "./modules/soar"
