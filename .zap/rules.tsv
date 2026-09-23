@@ -1,0 +1,11 @@
+# ZAP Baseline rules (tab-separated). WARN=report, FAIL=block, IGNORE=suppress.
+# Not-listed rules default to WARN. High-severity FAIL; low-severity (headers) stay WARN.
+40018	FAIL	SQL Injection
+90019	FAIL	Server Side Code Injection
+90020	FAIL	Remote OS Command Injection
+40012	FAIL	Cross Site Scripting (Reflected)
+40014	FAIL	Cross Site Scripting (Persistent)
+40003	FAIL	CRLF Injection
+6	FAIL	Path Traversal
+40008	FAIL	Parameter Tampering
+90022	FAIL	Application Error Disclosure
