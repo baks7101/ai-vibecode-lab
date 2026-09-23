@@ -21,7 +21,7 @@ jobs:
       has-docker: true
       has-terraform: true
       has-kubernetes: true
-      run-dast: false
+      run-dast: true
       has-ai: true
       aws-role-arn: arn:aws:iam::761584754677:role/github-actions-ai-vibecode-lab
     secrets: inherit
