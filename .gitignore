@@ -158,3 +158,8 @@ terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 **/backend_override.tf
 terraform/modules/soar/build/
+
+# Nested terraform caches/artifacts (bootstrap stack etc.)
+**/.terraform/
+**/tfplan
+**/plan.json

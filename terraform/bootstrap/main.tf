@@ -1,17 +1,51 @@
 # =============================================================================
-# GitHub Actions OIDC — keyless CI-to-AWS auth for ai-vibecode-lab
+# BOOTSTRAP STACK — persistent identity infrastructure
 # -----------------------------------------------------------------------------
-# The OIDC PROVIDER is a one-per-account shared foundation (already created in
-# this AWS account). We REFERENCE it here rather than creating it again.
-# We create our OWN role, scoped to THIS repo only, with read-only access.
+# This stack is applied ONCE and never destroyed with the ephemeral cluster.
+# It holds the GitHub Actions OIDC role, which the pipeline needs even when no
+# cluster exists. Separating persistent identity from ephemeral workload infra
+# means `terraform destroy` on the cluster never removes the CI auth role.
+#
+# Its own state key (bootstrap.tfstate) keeps it fully independent of the
+# cluster's state (ai-vibecode-lab/terraform.tfstate).
 # =============================================================================
 
-# Reference the existing account-wide GitHub OIDC provider (do not re-create).
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "securestack-tfstate-761584754677"
+    key            = "ai-vibecode-lab/bootstrap.tfstate"
+    region         = "eu-west-2"
+    encrypt        = true
+    dynamodb_table = "securestack-tflock"
+  }
+}
+
+provider "aws" {
+  region = "eu-west-2"
+
+  default_tags {
+    tags = {
+      Project   = "ai-vibecode-lab"
+      Stack     = "bootstrap"
+      ManagedBy = "terraform"
+    }
+  }
+}
+
+# Reference the account-wide GitHub OIDC provider (one per account).
 data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 }
 
-# Role that ai-vibecode-lab's pipeline assumes. Trust scoped to THIS repo only.
 data "aws_iam_policy_document" "github_actions_assume" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -28,7 +62,6 @@ data "aws_iam_policy_document" "github_actions_assume" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Only workflows in baks7101/ai-vibecode-lab can assume this role.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
@@ -42,12 +75,10 @@ resource "aws_iam_role" "github_actions" {
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume.json
 
   tags = {
-    Name        = "github-actions-ai-vibecode-lab"
-    Environment = var.environment
+    Name = "github-actions-ai-vibecode-lab"
   }
 }
 
-# Read-only is enough for `terraform plan` (plan only READS AWS). Least privilege.
 resource "aws_iam_role_policy_attachment" "github_actions_readonly" {
   role       = aws_iam_role.github_actions.name
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
