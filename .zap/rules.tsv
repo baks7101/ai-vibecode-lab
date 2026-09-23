@@ -1,5 +1,6 @@
-# ZAP Baseline rules (tab-separated). WARN=report, FAIL=block, IGNORE=suppress.
-# Not-listed rules default to WARN. High-severity FAIL; low-severity (headers) stay WARN.
+# ZAP Baseline rules (tab-separated). WARN=report, FAIL=block, IGNORE=accepted.
+# Not-listed rules default to WARN. High-severity classes FAIL the build.
+# The IGNORE rules below are reviewed, accepted low-severity findings for a JSON API.
 40018	FAIL	SQL Injection
 90019	FAIL	Server Side Code Injection
 90020	FAIL	Remote OS Command Injection
@@ -9,3 +10,8 @@
 6	FAIL	Path Traversal
 40008	FAIL	Parameter Tampering
 90022	FAIL	Application Error Disclosure
+10049	IGNORE	Cacheable content - not sensitive for this API
+10055	IGNORE	CSP present (helmet); sub-directive nuance, low risk
+10063	IGNORE	Permissions-Policy - irrelevant for a headless JSON API
+10096	IGNORE	Timestamp in /metrics is expected Prometheus output
+90005	IGNORE	Sec-Fetch-Dest is a client-set request header, not server-controlled
