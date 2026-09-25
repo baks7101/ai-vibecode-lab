@@ -163,3 +163,5 @@ terraform/modules/soar/build/
 **/.terraform/
 **/tfplan
 **/plan.json
+README.md.bak
+README.md.bak
