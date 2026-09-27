@@ -21,7 +21,7 @@ Planted on purpose as demonstration cases: prompt injection (user input flows in
 ## What's proven
 
 ### Build time (via the SecureStack pipeline)
-Every pull request is scanned by SecureStack's reusable 11-stage pipeline. Each stage was validated by deliberately planting the vulnerability it catches and watching it get caught: secrets, SAST (CodeQL + Semgrep), dependency/SCA, IaC (Checkov + custom OPA), container config, AI-agent governance, AI-BOM data-classification ceilings, SBOM, and DAST.
+Every pull request is scanned by SecureStack's reusable 13-stage pipeline. Each stage was validated by deliberately planting the vulnerability it catches and watching it get caught: secrets, SAST (CodeQL + Semgrep), dependency/SCA, IaC (Checkov + custom OPA), container config, AI-agent governance, AI-BOM data-classification ceilings, SBOM, and DAST.
 
 ### Live on AWS EKS (deployed, proven, torn down)
 - Kyverno admission control: a privileged pod is rejected by a custom policy (defense-in-depth with Pod Security Admission).
