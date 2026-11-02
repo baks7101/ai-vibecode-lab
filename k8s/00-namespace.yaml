@@ -4,8 +4,15 @@ metadata:
   name: meditriage
   labels:
     app: meditriage
-    # Enforce the baseline pod security standard on this namespace.
-    # This is Kubernetes' built-in guardrail: it rejects pods that
-    # ask for dangerous privileges (running as root, host access, etc).
-    pod-security.kubernetes.io/enforce: baseline
+    # Pod Security Admission: Kubernetes' built-in admission check.
+    # "restricted" is the strictest standard. On top of baseline (no
+    # privileged containers, no host network/PID/IPC, no hostPath
+    # volumes, no added dangerous capabilities) it REQUIRES: run as
+    # non-root, no privilege escalation, drop ALL capabilities, and a
+    # seccomp profile. Pods that don't meet it are rejected at admission.
+    # Note: baseline alone does NOT block running as root; restricted does.
+    pod-security.kubernetes.io/enforce: restricted
+    # warn: shows a warning to whoever runs kubectl apply.
+    # audit: records violations in the cluster audit log.
     pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
