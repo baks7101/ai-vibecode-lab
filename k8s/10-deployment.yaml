@@ -19,7 +19,16 @@ spec:
         prometheus.io/port: "3000"
         prometheus.io/path: "/metrics"
     spec:
-      # Pod-level security: no privilege escalation, run as non-root.
+      # The app never calls the Kubernetes API, so it gets no credential
+      # for it. By default every pod gets a service account token mounted,
+      # which would be a free cluster credential for an attacker.
+      automountServiceAccountToken: false
+      # Total time allowed for shutdown before SIGKILL. The preStop pauses
+      # below and the app's SHUTDOWN_TIMEOUT_MS (10s) must fit inside it.
+      terminationGracePeriodSeconds: 30
+      # Pod-level security (applies to both containers): run as non-root
+      # user 1000 with the runtime's default seccomp profile. Privilege
+      # escalation is blocked per container, further down.
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -55,6 +64,14 @@ spec:
                 secretKeyRef:
                   name: meditriage-secrets
                   key: llm-guard-token
+          # On shutdown, Kubernetes removes the pod from Service endpoints
+          # and sends SIGTERM at the same time, so a few requests can still
+          # arrive after SIGTERM. Pausing 5s first lets endpoint removal
+          # finish; then SIGTERM triggers the graceful shutdown in app.js.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "5"]
           resources:
             requests:
               cpu: "100m"
@@ -91,6 +108,14 @@ spec:
                 secretKeyRef:
                   name: meditriage-secrets
                   key: llm-guard-token
+          # The guard must outlive the API: the API is fail-closed, so if
+          # the guard stopped first, the API's last in-flight requests
+          # would fail. 15s covers the API's 5s pause plus its 10s shutdown
+          # timeout, and still fits inside the 30s grace period.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "15"]
           volumeMounts:
             - name: guard-config
               mountPath: /home/user/app/config/scanners.yml
