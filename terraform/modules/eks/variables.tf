@@ -53,3 +53,9 @@ variable "node_max_size" {
   type        = number
   default     = 3
 }
+
+variable "vpc_cni_version" {
+  description = "Pinned Amazon VPC CNI add-on version. Must be v1.14+ for network policy support and compatible with cluster_version. Check with: aws eks describe-addon-versions --kubernetes-version <version> --addon-name vpc-cni"
+  type        = string
+  default     = "v1.22.4-eksbuild.10"
+}

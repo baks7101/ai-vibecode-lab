@@ -1,0 +1,84 @@
+# ---------------------------------------------------------------------
+# Piece 1: default deny for the whole namespace.
+# podSelector {} selects EVERY pod in meditriage, including future ones,
+# and lists no allow rules, so all ingress and egress is blocked unless
+# another policy allows it. A new pod added later starts locked down.
+# Requires network policy enforcement in the VPC CNI add-on
+# (terraform/modules/eks/addons.tf); without it this is silently ignored.
+# ---------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: meditriage
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# ---------------------------------------------------------------------
+# Piece 2: the exact connections the API pod needs, nothing more.
+# Policies are additive: these allows punch holes in the deny above.
+# Traffic between the api and llm-guard containers uses localhost
+# inside the pod, so it never touches the network and needs no rule.
+# ---------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: meditriage-api
+  namespace: meditriage
+spec:
+  podSelector:
+    matchLabels:
+      app: meditriage-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Only Prometheus may connect, and only to the app port (3000).
+    # ONE list item = namespace AND pod label must both match. Two
+    # separate items would mean OR, letting any pod with a "prometheus"
+    # label in any namespace in.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    # DNS, so the app can resolve api.openai.com. Only to CoreDNS.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # HTTPS to the public internet only (OpenAI). NetworkPolicy is
+    # IP-based and cannot filter by domain name, and OpenAI's IPs change,
+    # so the best it can do is: public internet yes, everything private
+    # no. Blocked: the VPC and cluster (private ranges, which also covers
+    # the Kubernetes API endpoint) and the AWS metadata service
+    # (169.254.169.254, credential theft). Domain-level egress control
+    # (an egress proxy or a CNI such as Cilium) is a documented next step.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
