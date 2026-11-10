@@ -26,7 +26,7 @@
   "runtimeControls": [
     {
       "name": "llm-guard",
-      "image": "laiyer/llm-guard-api:latest",
+      "image": "laiyer/llm-guard-api@sha256:bea3efb1220ad18149b73de625c55e6d835bf8b45023a089a3762012a86550ba",
       "type": "runtime-scanner",
       "inputScanners": ["PromptInjection", "InvisibleText"],
       "outputScanners": ["Sensitive"]

@@ -98,7 +98,10 @@ spec:
               drop: ["ALL"]
         # ---- Container 2: the LLM-Guard sidecar ----
         - name: llm-guard
-          image: laiyer/llm-guard-api:latest
+          # Pinned by digest (multi-arch index: amd64 + arm64), taken from
+          # :latest on 10 Nov 2026. Cannot change without a PR. Must match
+          # ai-bom.json and .github/workflows/pr-check.yml.
+          image: laiyer/llm-guard-api@sha256:bea3efb1220ad18149b73de625c55e6d835bf8b45023a089a3762012a86550ba
           ports:
             - containerPort: 8000
               name: guard
