@@ -22,6 +22,9 @@ jobs:
       has-terraform: true
       has-kubernetes: true
       run-dast: true
+      # Same digest as k8s/10-deployment.yaml and ai-bom.json, so CI's DAST
+      # stage tests exactly the guard we deploy. Bump all three together.
+      llm-guard-image: laiyer/llm-guard-api@sha256:bea3efb1220ad18149b73de625c55e6d835bf8b45023a089a3762012a86550ba
       has-ai: true
       aws-role-arn: arn:aws:iam::761584754677:role/github-actions-ai-vibecode-lab
     secrets: inherit
