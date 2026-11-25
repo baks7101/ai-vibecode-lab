@@ -7,7 +7,9 @@ metadata:
   name: meditriage
   namespace: argocd
 spec:
-  project: default
+  # The fence: see argocd-project.yaml. Was "default", which allows any
+  # repo, any namespace and any resource type.
+  project: meditriage
   source:
     repoURL: https://github.com/baks7101/ai-vibecode-lab.git
     targetRevision: main
@@ -15,10 +17,11 @@ spec:
     directory:
       # Not applied by ArgoCD:
       # - argocd-application.yaml: the Application manifest itself.
+      # - argocd-project.yaml: the AppProject (must exist before any sync).
       # - 40-external-secret.yaml: applied by hand for now. The reason for
       #   this exclusion is unconfirmed (likely ESO's CRDs not existing yet
       #   on first sync); bring it under GitOps once checked on a live cluster.
-      exclude: "{argocd-application.yaml,40-external-secret.yaml}"
+      exclude: "{argocd-application.yaml,argocd-project.yaml,40-external-secret.yaml}"
   destination:
     server: https://kubernetes.default.svc
     namespace: meditriage
