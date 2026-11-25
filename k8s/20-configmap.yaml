@@ -4,6 +4,11 @@ metadata:
   name: llm-guard-config
   namespace: meditriage
 data:
+  # NOTE: the metrics block below (exporter: prometheus) does NOT work:
+  # this LLM-Guard image returned 404 on /metrics when tested (Jul 2026).
+  # Guard metrics are produced by the API instead (src/metrics.js, prom-client):
+  # llm_guard_blocks_total, llm_guard_scans_total, llm_guard_errors_total,
+  # llm_guard_scan_duration_seconds.
   scanners.yml: |
     app:
       name: ${APP_NAME:LLM Guard API}
