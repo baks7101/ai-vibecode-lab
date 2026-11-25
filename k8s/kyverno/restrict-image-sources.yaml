@@ -1,0 +1,46 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-sources
+  annotations:
+    policies.kyverno.io/title: Restrict Image Sources
+    policies.kyverno.io/description: >-
+      Pods in the meditriage namespace may only run images from this
+      account's ECR (built and scanned by our own pipeline), or the
+      LLM-Guard sidecar pinned by digest. Third-party images must be
+      pinned by digest, so a moved tag such as :latest can never change
+      what runs. Turns image pinning from a convention into a rule the
+      cluster enforces.
+spec:
+  # Enforce = reject non-compliant pods. Audit would only report them.
+  validationFailureAction: Enforce
+  # Also report existing pods that break the rule.
+  background: true
+  rules:
+    - name: approved-image-sources
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - meditriage
+      validate:
+        message: >-
+          Image not from an approved source. Allowed: this account's ECR
+          (761584754677.dkr.ecr.eu-west-2.amazonaws.com/...), or
+          laiyer/llm-guard-api pinned by digest (@sha256:...).
+          Third-party images must be pinned by digest, never by tag.
+        # "|" means OR. "*" matches anything after the fixed part.
+        # The ECR entry includes the "/" after amazonaws.com, so a look-alike
+        # host such as ...amazonaws.com.evil.example/x does not match.
+        # Covers ephemeral containers too, so kubectl debug cannot inject
+        # an unapproved image into a running pod.
+        pattern:
+          spec:
+            =(ephemeralContainers):
+              - image: "761584754677.dkr.ecr.eu-west-2.amazonaws.com/* | laiyer/llm-guard-api@sha256:* | docker.io/laiyer/llm-guard-api@sha256:*"
+            =(initContainers):
+              - image: "761584754677.dkr.ecr.eu-west-2.amazonaws.com/* | laiyer/llm-guard-api@sha256:* | docker.io/laiyer/llm-guard-api@sha256:*"
+            containers:
+              - image: "761584754677.dkr.ecr.eu-west-2.amazonaws.com/* | laiyer/llm-guard-api@sha256:* | docker.io/laiyer/llm-guard-api@sha256:*"
