@@ -1,0 +1,49 @@
+# ArgoCD AppProject: the fence around the meditriage Application.
+# Replaces project "default", which allows any repo, any namespace,
+# any cluster and any resource type.
+#
+# Allow-lists, not block-lists: anything not listed is refused, so a
+# new resource type has to be added here on purpose, through a PR.
+#
+# Applied by hand (like the Application itself), because ArgoCD needs the
+# project to exist before it can sync anything. Excluded from the sync.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: meditriage
+  namespace: argocd
+spec:
+  description: "MediTriage: deploys only from its own repo, only into the meditriage namespace, only the resource types it uses."
+
+  # Only this repo may be used as a source.
+  sourceRepos:
+    - https://github.com/baks7101/ai-vibecode-lab.git
+
+  # Only this cluster, only this namespace.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: meditriage
+
+  # Cluster-wide types: only Namespace (00-namespace.yaml, which carries
+  # the restricted Pod Security labels). Trade-off: ArgoCD allows by type,
+  # not by name, so this app could create other namespaces too. The
+  # enterprise fix is for the platform team to create namespaces and allow
+  # no cluster-wide types here at all.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  # Namespaced types: exactly what k8s/ deploys today. Pods and ReplicaSets
+  # are created by the Deployment controller, not by ArgoCD, so they do
+  # not need listing.
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ConfigMap
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+    - group: networking.k8s.io
+      kind: NetworkPolicy
