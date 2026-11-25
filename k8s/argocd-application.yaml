@@ -13,9 +13,12 @@ spec:
     targetRevision: main
     path: k8s
     directory:
-      # Don't let ArgoCD try to apply the example secret or the
-      # Application manifest itself.
-      exclude: "{30-secret.example.yaml,argocd-application.yaml,40-external-secret.yaml}"
+      # Not applied by ArgoCD:
+      # - argocd-application.yaml: the Application manifest itself.
+      # - 40-external-secret.yaml: applied by hand for now. The reason for
+      #   this exclusion is unconfirmed (likely ESO's CRDs not existing yet
+      #   on first sync); bring it under GitOps once checked on a live cluster.
+      exclude: "{argocd-application.yaml,40-external-secret.yaml}"
   destination:
     server: https://kubernetes.default.svc
     namespace: meditriage
