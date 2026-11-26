@@ -14,8 +14,9 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Restrict default security group to deny all traffic
-# checkov:skip=CKV2_AWS_12:Default SG is explicitly restricted below
+# Default security group locked down: no ingress or egress rules, so anything
+# accidentally attached to it gets no access. CKV2_AWS_12 passes on its own,
+# so no skip is needed.
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.main.id
 
@@ -24,19 +25,22 @@ resource "aws_default_security_group" "default" {
   }
 }
 
-# Public subnets — for load balancers only
-# checkov:skip=CKV_AWS_130:Public subnets require public IPs for ALB/NLB ingress
+# Public subnets: hold the NAT gateway and any internet-facing load balancer.
+# No workloads run here; nodes are in the private subnets.
+# map_public_ip_on_launch = false: the NAT gateway uses its own Elastic IP, and
+# load balancers are placed by the kubernetes.io/role/elb tag, so neither needs
+# auto-assigned public IPs. Auto-assign only affects instances launched into
+# this subnet, and an instance launched here by mistake should NOT get one.
 resource "aws_subnet" "public" {
-  # checkov:skip=CKV_AWS_130:Public subnets must auto-assign public IPs so the internet-facing load balancer and NAT gateway work; workloads run in the PRIVATE subnets.
   count                   = length(var.public_subnet_cidrs)
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = {
-    Name                                           = "${var.project_name}-public-${count.index + 1}"
-    Environment                                    = var.environment
+    Name                                            = "${var.project_name}-public-${count.index + 1}"
+    Environment                                     = var.environment
     "kubernetes.io/role/elb"                        = "1"
     "kubernetes.io/cluster/${var.project_name}-eks" = "shared"
   }
@@ -49,8 +53,8 @@ resource "aws_subnet" "private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
-    Name                                           = "${var.project_name}-private-${count.index + 1}"
-    Environment                                    = var.environment
+    Name                                            = "${var.project_name}-private-${count.index + 1}"
+    Environment                                     = var.environment
     "kubernetes.io/role/internal-elb"               = "1"
     "kubernetes.io/cluster/${var.project_name}-eks" = "shared"
   }
