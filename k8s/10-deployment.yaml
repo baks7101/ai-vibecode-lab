@@ -39,6 +39,9 @@ spec:
         # ---- Container 1: the application ----
         - name: api
           image: 761584754677.dkr.ecr.eu-west-2.amazonaws.com/securestack-api:v2
+          # Always ask the registry on pod start, so a pod cannot use an image
+          # another pod already pulled onto the node without proving access.
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
               name: http
@@ -102,6 +105,9 @@ spec:
           # :latest on 10 Nov 2026. Cannot change without a PR. Must match
           # ai-bom.json and .github/workflows/pr-check.yml.
           image: laiyer/llm-guard-api@sha256:bea3efb1220ad18149b73de625c55e6d835bf8b45023a089a3762012a86550ba
+          # Digest-pinned, so Always only re-checks the manifest and access;
+          # the 3.5GB image is not downloaded again.
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
               name: guard
@@ -130,6 +136,19 @@ spec:
             limits:
               cpu: "1000m"
               memory: "4Gi"
+          # Liveness: is the process alive? /healthz answers before the ML
+          # models load, which is wrong for READINESS (below) but right for
+          # liveness. Kept cheap so a busy guard is not killed under load.
+          # Without it, a hung guard is never restarted and, because the API
+          # is fail-closed, the app stays down until someone notices.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
           # Readiness gated on a REAL scan, not /healthz. /healthz returns
           # 200 before the ML models load, so probing it marks the pod
           # ready before it can actually scan (the cold-start 500 we hit
