@@ -5,6 +5,12 @@ metadata:
   namespace: meditriage
   labels:
     app: meditriage-api
+  # Checkov exceptions: each names the check and the real reason.
+  annotations:
+    checkov.io/skip1: "CKV_K8S_43=API image is pinned by tag in our own ECR repo, where tags are immutable (CKV_AWS_51 passes), built and scanned by our pipeline. The guard image is pinned by digest. Production would pin the API by digest too, updated by CI."
+    checkov.io/skip2: "CKV_K8S_35=Secrets are env vars because the app reads them from the environment. Moving to mounted files needs an app change and is planned in the secrets lifecycle work (with Reloader and rotation)."
+    checkov.io/skip3: "CKV_K8S_22=The API container has a read-only root filesystem. The llm-guard container does not yet: it downloads its ML models from HuggingFace at runtime into its home folder. Fix: our own guard image with models baked in, then read-only."
+    checkov.io/skip4: "CKV_K8S_40=The API container runs as UID 10001 (tested). The llm-guard container must stay UID 1000 for now: only that user can write the runtime model cache. Fix: our own guard image with models baked in, then a high UID."
 spec:
   replicas: 1
   selector:
@@ -39,6 +45,9 @@ spec:
         # ---- Container 1: the application ----
         - name: api
           image: 761584754677.dkr.ecr.eu-west-2.amazonaws.com/securestack-api:v2
+          # Always ask the registry on pod start, so a pod cannot use an image
+          # another pod already pulled onto the node without proving access.
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
               name: http
@@ -92,6 +101,11 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           securityContext:
+            # High UID, overriding the pod-level 1000 for this container only.
+            # On EKS nodes UID 1000 is ec2-user, a real host account; 10001
+            # maps to no one. Tested locally as 10001 with a read-only FS.
+            runAsUser: 10001
+            runAsGroup: 10001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
@@ -102,6 +116,9 @@ spec:
           # :latest on 10 Nov 2026. Cannot change without a PR. Must match
           # ai-bom.json and .github/workflows/pr-check.yml.
           image: laiyer/llm-guard-api@sha256:bea3efb1220ad18149b73de625c55e6d835bf8b45023a089a3762012a86550ba
+          # Digest-pinned, so Always only re-checks the manifest and access;
+          # the 3.5GB image is not downloaded again.
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
               name: guard
@@ -130,6 +147,19 @@ spec:
             limits:
               cpu: "1000m"
               memory: "4Gi"
+          # Liveness: is the process alive? /healthz answers before the ML
+          # models load, which is wrong for READINESS (below) but right for
+          # liveness. Kept cheap so a busy guard is not killed under load.
+          # Without it, a hung guard is never restarted and, because the API
+          # is fail-closed, the app stays down until someone notices.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
           # Readiness gated on a REAL scan, not /healthz. /healthz returns
           # 200 before the ML models load, so probing it marks the pod
           # ready before it can actually scan (the cold-start 500 we hit
