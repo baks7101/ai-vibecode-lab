@@ -55,6 +55,7 @@ module "eks" {
   private_subnet_ids   = module.vpc.private_subnet_ids
   private_subnet_cidrs = var.private_subnet_cidrs
   cluster_version      = var.cluster_version
+  public_access_cidrs  = var.eks_public_access_cidrs
   node_instance_types  = var.node_instance_types
   node_desired_size    = var.node_desired_size
   node_min_size        = var.node_min_size
@@ -70,7 +71,7 @@ module "security" {
   aws_region   = var.aws_region
   kms_key_arn  = module.eks.kms_key_arn
 
-  allowed_ip                 = var.allowed_ip
+  allowed_ip = var.allowed_ip
 
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_provider_url = module.eks.oidc_provider_url

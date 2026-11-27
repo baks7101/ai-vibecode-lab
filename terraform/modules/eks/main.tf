@@ -2,11 +2,8 @@
 # Creates a production-grade EKS cluster with managed node groups
 # Includes audit logging, encryption, and private endpoint access
 
-# checkov:skip=CKV_AWS_39:Public endpoint required for GitHub Actions OIDC deployment and developer kubectl access
-# checkov:skip=CKV_AWS_38:Public endpoint access restricted by RBAC and security group — required for CI/CD
 resource "aws_eks_cluster" "main" {
-  # checkov:skip=CKV_AWS_38:Public endpoint needed to manage the cluster from a workstation in this lab (no bastion/VPN); private access is also enabled.
-  # checkov:skip=CKV_AWS_39:Same — public endpoint is a deliberate lab access choice; production would be private-only with a bastion or VPN.
+  # checkov:skip=CKV_AWS_39:Public endpoint is a deliberate lab access choice (no bastion or VPN). It is restricted to public_access_cidrs, and private access is also enabled. Production would be private-only with a bastion or VPN.
   name     = "${var.project_name}-eks"
   role_arn = aws_iam_role.cluster.arn
   version  = var.cluster_version
@@ -15,7 +12,11 @@ resource "aws_eks_cluster" "main" {
     subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true
     endpoint_public_access  = true
-    security_group_ids      = [aws_security_group.cluster.id]
+    # The public endpoint is reachable ONLY from these IPv4 CIDRs, passed at
+    # apply time and never committed. Without this line AWS defaults to
+    # 0.0.0.0/0: the whole internet.
+    public_access_cidrs = var.public_access_cidrs
+    security_group_ids  = [aws_security_group.cluster.id]
   }
 
   encryption_config {

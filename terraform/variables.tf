@@ -56,3 +56,13 @@ variable "allowed_ip" {
   description = "Your public IP in CIDR form (e.g. 1.2.3.4/32) allowed to reach OpenSearch"
   type        = string
 }
+
+variable "eks_public_access_cidrs" {
+  description = "IPv4 CIDRs allowed to reach the EKS public API endpoint, e.g. [\"1.2.3.4/32\"]. No default: pass at apply time with -var. Never commit real values: this repo is public."
+  type        = list(string)
+
+  validation {
+    condition     = length(var.eks_public_access_cidrs) > 0 && !contains(var.eks_public_access_cidrs, "0.0.0.0/0")
+    error_message = "eks_public_access_cidrs must list at least one CIDR and must not include 0.0.0.0/0 (the whole internet)."
+  }
+}
