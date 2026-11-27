@@ -59,3 +59,8 @@ variable "vpc_cni_version" {
   type        = string
   default     = "v1.22.4-eksbuild.10"
 }
+
+variable "public_access_cidrs" {
+  description = "IPv4 CIDRs allowed to reach the EKS public API endpoint. Without it AWS defaults to 0.0.0.0/0."
+  type        = list(string)
+}
