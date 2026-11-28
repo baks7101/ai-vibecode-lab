@@ -4,6 +4,12 @@ on:
   pull_request:
     branches:
       - main
+  # Also run on main after each merge, so the default branch has its own
+  # analysis: the Security tab can show main's alerts, and PRs have a baseline
+  # to compare against. Without this, results only ever existed on PRs.
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
