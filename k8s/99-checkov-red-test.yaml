@@ -1,0 +1,14 @@
+# DELIBERATELY INSECURE TEST FIXTURE: never merge.
+# Proves the Kubernetes Checkov gate fails on a bad manifest.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: checkov-red-test
+  namespace: meditriage
+spec:
+  containers:
+    - name: bad
+      image: nginx:latest
+      securityContext:
+        privileged: true
+        runAsUser: 0
