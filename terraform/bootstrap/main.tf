@@ -62,10 +62,17 @@ data "aws_iam_policy_document" "github_actions_assume" {
       values   = ["sts.amazonaws.com"]
     }
 
+    # Only the two kinds of run that need AWS: pull requests and pushes to
+    # main. Previously "repo:baks7101/ai-vibecode-lab:*" let ANY workflow on
+    # ANY branch assume this role, with no PR or review. StringEquals means
+    # exact matches, no wildcards. PRs from forks never receive OIDC tokens.
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:baks7101/ai-vibecode-lab:*"]
+      values = [
+        "repo:baks7101/ai-vibecode-lab:pull_request",
+        "repo:baks7101/ai-vibecode-lab:ref:refs/heads/main",
+      ]
     }
   }
 }
@@ -79,9 +86,26 @@ resource "aws_iam_role" "github_actions" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "github_actions_readonly" {
-  role       = aws_iam_role.github_actions.name
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+# Exactly what the pipeline's OPA stage needs for `terraform plan
+# -refresh=false`. Its data sources: aws_caller_identity (no permission
+# needed), aws_region and aws_iam_policy_document (no API call), and
+# aws_availability_zones (the one action below).
+# Replaces the AWS-managed ReadOnlyAccess, which could read every S3 object,
+# including Terraform state holding a generated password (proven with
+# `aws iam simulate-principal-policy`: s3:GetObject on the state = allowed).
+resource "aws_iam_role_policy" "github_actions_plan" {
+  name = "terraform-plan-minimal"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid      = "TerraformPlanDataSources"
+      Effect   = "Allow"
+      Action   = ["ec2:DescribeAvailabilityZones"]
+      Resource = "*"
+    }]
+  })
 }
 
 output "github_actions_role_arn" {
